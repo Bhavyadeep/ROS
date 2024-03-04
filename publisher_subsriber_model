@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+#publisher-subsciber model for ROS
+
+import rospy
+from std_msgs.msg import String
+
+class PublisherNode:
+    def __init__(self):
+        rospy.init_node('publisher_node', anonymous=True)
+        self.pub = rospy.Publisher('chatter', String, queue_size=10)
+        self.rate = rospy.Rate(10) # 10hz
+
+    def publish_message(self):
+        while not rospy.is_shutdown():
+            hello_msg = "hello world %s" % rospy.get_time()
+            rospy.loginfo(hello_msg)
+            self.pub.publish(hello_msg)
+            self.rate.sleep()
+
+class SubscriberNode:
+    def __init__(self):
+        rospy.init_node('subscriber_node', anonymous=True)
+        rospy.Subscriber('chatter', String, self.callback)
+
+    def callback(self, data):
+        rospy.loginfo("I heard: %s", data.data)
+
+    def run(self):
+        rospy.spin()
+
+if __name__ == '__main__':
+    try:
+        publisher_node = PublisherNode()
+        subscriber_node = SubscriberNode()
+
+        # Start publisher and subscriber
+        rospy.loginfo("Starting publisher and subscriber nodes...")
+        publisher_node.publish_message()
+        subscriber_node.run()
+        
+    except rospy.ROSInterruptException:
+        pass
+
